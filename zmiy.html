@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      flex-direction: column;
+    }
+    canvas {
+      border: 1px solid white;
+      display: none;
+    }
+    .button {
+      padding: 10px 20px;
+      background-color: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      margin: 5px;
+    }
+    .container {
+      text-align: center;
+    }
+    #startScreen, #endScreen, #pauseScreen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+    }
+    #startScreen h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    #endScreen, #pauseScreen {
+      display: none;
+    }
+    #scoreBoard {
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      color: yellow;
+    }
+    #speedControl, #boundaryControl {
+      margin-top: 20px;
+    }
+    #boundaryControl {
+      margin-bottom: 20px;
+    }
+    #endMessage {
+      color: red;
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+    #endScore {
+      color: yellow;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    #pauseScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    #pauseScreen .button {
+      background-color: blue;
+    }
+    .joystick {
+      display: none;
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 150px;
+    }
+    .joystick button {
+      width: 50px;
+      height: 50px;
+      background-color: rgba(255, 255, 255, 0.3);
+      border: 1px solid white;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .joystick .up {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .joystick .down {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .joystick .left {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .joystick .right {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .pauseButton {
+      display: none;
+      padding: 10px 20px;
+      font-size: 20px;
+      background-color: blue;
+      color: white;
+      border: none;
+      cursor: pointer;
+      position: absolute;
+      top: 35px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    #newModeButton {
+      background-color: #ff4444 !important;
+    }
+    #mexicanWallButton {
+      background-color: #8B8000;
+    }
+    #mexicanWallButton.active {
+      box-shadow: 0 0 10px #FFD700;
+    }
+    @media (max-width: 768px) {
+      canvas {
+        width: 90%;
+        height: auto;
+        margin-top: 50px;
+      }
+      .joystick {
+        display: none;
+      }
+      .pauseButton {
+        display: block;
+        top: 10px;
+      }
+      #startScreen, #endScreen, #pauseScreen {
+        font-size: 18px;
+      }
+      #startScreen h1 {
+        font-size: 36px;
+      }
+      .button {
+        padding: 8px 16px;
+        font-size: 16px;
+      }
+      #scoreBoard {
+        top: 60px;
+        font-size: 18px;
+      }
+      #pauseScreen {
+        justify-content: flex-start;
+        padding-top: 20px;
+      }
+      .joystick {
+        bottom: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="startScreen" class="container">
+    <h1>START</h1>
+    <button class="button" id="startButton">Управлять змеем</button>
+    <button class="button" id="newModeButton">Успокоить волю голодного змiя</button>
+    <button class="button" id="mexicanWallButton">Мексиканская стена</button>
+    <button class="button" id="allGamesButton">Ко всем играм</button>
+    <div id="speedControl">
+      <span>Скорость: </span>
+      <input type="range" id="speedRange" min="50" max="300" step="50" value="150">
+    </div>
+    <div id="boundaryControl">
+      <input type="checkbox" id="boundaryCheckbox"> Границы карты
+    </div>
+  </div>
+  <canvas id="gameCanvas" width="640" height="480"></canvas>
+  <div id="scoreBoard">Очки: 0</div>
+  <div id="speedMultiplier">Множитель скорости: x1</div>
+  <div id="endScreen" class="container">
+    <p id="endMessage">Пошел нахуй чёрт</p>
+    <p id="endScore">Очки: 0</p>
+    <button class="button" id="settingsButton">Настройка</button>
+    <button class="button" id="restartButton">Рестарт</button>
+  </div>
+  <div id="pauseScreen" class="container">
+    <button class="button" id="resumeButton">Продолжить</button>
+    <button class="button" id="replayButton">Переиграть</button>
+    <button class="button" id="killSnakeButton" style="background-color: #ff0000;">Убить змiя</button>
+  </div>
+  <button class="pauseButton" id="pauseButton">Пауза</button>
+  <div class="joystick" id="joystick">
+    <button class="up">↑</button>
+    <button class="down">↓</button>
+    <button class="left">←</button>
+    <button class="right">→</button>
+  </div>
+  <script src="snake.js"></script>
+  <script>
+    document.getElementById("allGamesButton").addEventListener("click", () => {
+      window.location.href = "index.html";
+    });
+
+    document.getElementById("settingsButton").addEventListener("click", () => {
+      document.getElementById("startScreen").style.display = "flex";
+      document.getElementById("endScreen").style.display = "none";
+    });
+
+    document.getElementById("killSnakeButton").addEventListener("click", () => {
+      gameOver();
+      document.getElementById("pauseScreen").style.display = "none";
+      isPaused = false;
+    });
+  </script>
+</body>
+</html>

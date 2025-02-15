@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Flappy Bird</title>
+  <style>
+    body {
+      overflow-y: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    .bef {display:none;}
+    div {display: block;}
+    canvas {
+      border: 1px solid black;
+      background: url('https://papik.pro/uploads/posts/2022-01/1641149724_1-papik-pro-p-polyanka-detskii-risunok-1.jpg');
+    }
+    div.over {
+      background: #000;
+      color: red;
+      font-size: 700%;
+      height: 100vh;
+      text-align: center;
+      padding: none;
+      margin: none;
+    }
+    button.butt {
+      height: 10%;
+      width: 20%;
+      font-size: 55%;
+      background: #0f0;
+    }
+    button.butt1 {
+      height: 20%;
+      width: 40%;
+      font-size: 300%;
+      background: #0f0;
+      align: center;
+    }
+    .clicker {
+      width: 100px;
+      height: 100px;
+      background-color: blue;
+      outline: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id='igra' class='igratb' style="max-height: 100vh;">
+  <div class='bef' id='vspm'>
+    <span id='count' style="position: absolute; left: 1%; top: 1%; font-size: 500%;">0</span>
+    <canvas tabindex="0" id="game" width="1000" height="800" autofocus></canvas>
+  </div>
+  <div id='pop'>
+    <button type="button" onclick="start();" class="butt1" style="position: absolute; top: 50%; left: 30%;" tabindex="0" autofocus>Start</button>
+  </div>
+</div>
+
+<script>
+  let gameStart = false;
+  let konec = document.getElementById('igra');
+  
+  function start() {
+    document.getElementById('vspm').classList.remove("bef");
+    document.getElementById('pop').innerHTML = ' ';
+    gameStart = true;
+    document.getElementById('game').focus();
+  }
+  
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  
+  const birdImage = new Image();
+  birdImage.src = 'https://i.imgur.com/rMxDInX.png'; // Путь к изображению птички
+  
+  const topPipeImage = new Image();
+  topPipeImage.src = 'https://i.imgur.com/mL1wKmU.png'; // Путь к изображению верхней трубы
+  
+  const bottomPipeImage = new Image();
+  bottomPipeImage.src = 'https://i.imgur.com/ybVe8AO.png'; // Путь к изображению нижней трубы
+  
+  let birdX = 50;
+  let birdY = canvas.height / 2;
+  let birdV = 0;
+  let pipes = [];
+  let gameOver = false;
+  let timeSinceLastPipe = 0;
+  
+  let k = 0;
+  
+  pipes.push({
+    x: canvas.width,
+    y: Math.random() * (canvas.height - 150)
+  });
+  
+  setInterval(function() {
+    if (gameOver || !gameStart) return;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Рисуем птичку
+    ctx.drawImage(birdImage, birdX, birdY, 20, 20);
+    
+    birdY += birdV;
+    birdV += 0.5;
+    
+    // Рисуем трубы
+    for (let i = 0; i < pipes.length; i++) {
+      // Верхняя труба
+      ctx.drawImage(topPipeImage, pipes[i].x, 0, 30, pipes[i].y);
+      // Нижняя труба
+      ctx.drawImage(bottomPipeImage, pipes[i].x, pipes[i].y + 150, 30, canvas.height - pipes[i].y - 150);
+      
+      pipes[i].x -= 2;
+      
+      if (pipes[i].x + 30 < 0) {
+        pipes.splice(i, 1);
+        i--;
+      }
+      if (birdX + 20 >= pipes[i].x && birdX <= pipes[i].x + 30 && (birdY <= pipes[i].y || birdY + 20 >= pipes[i].y + 150)) {
+        death();
+      } else if (birdX === pipes[i].x + 30) {
+        k++;
+        document.getElementById('count').innerHTML = k;
+      }
+    }
+    
+    timeSinceLastPipe += 1;
+    if (timeSinceLastPipe === 200) {
+      pipes.push({
+        x: canvas.width,
+        y: Math.random() * (canvas.height - 150)
+      });
+      timeSinceLastPipe = 0;
+    }
+    
+    if (birdY + 20 > canvas.height || birdY < 0) {
+      death();
+    }
+  }, 20);
+  
+  // Обработка нажатия на canvas
+  canvas.addEventListener("click", function() {
+    if (gameStart) birdV = -10;
+  });
+  
+  // Обработка касаний на мобильных устройствах
+  document.addEventListener('touchstart', function() {
+    if (gameStart) birdV = -10;
+  });
+  
+  // Обработка нажатий клавиш
+  document.addEventListener('keydown', function(event) {
+    if (event.code === 'Space') {
+      event.preventDefault();
+      if (gameStart) birdV = -10;
+    }
+  });
+  
+  function death() {
+    gameOver = true;
+    konec.classList.add('over');
+    konec.innerHTML = "You are popusk";
+    konec.innerHTML += '<br>';
+    konec.innerHTML += "Your score: " + k;
+    konec.innerHTML += '<button type="button" onclick="window.location.reload();" class="butt" style="position: absolute; top: 85%; right: 40%" tabindex="0" autofocus>Restart</button>';
+  }
+</script>
+</body>
+</html>
